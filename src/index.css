@@ -1,0 +1,48 @@
+*{
+    font-family: nunito;
+    margin: 0;
+}
+.user{
+    padding-top: 120px;
+    margin-top: 20vh;
+    margin-left: 35vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 350px;
+    width: 600px;
+    background-color: rgb(245, 207, 158);
+    border-radius: 2%;
+    border: 2px black;
+    box-shadow: rgba(50, 50, 93, 0.3) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+}
+.reg-no,.code{
+    width: 280px;
+    height: 50px;
+    margin: 7px;
+    border-radius: 3px;
+    font-size: 25px;
+}
+label {
+    font-size: larger;
+    font-weight: bolder;
+    display: inline-block;
+    width: 90px;
+    font-size: 25px;
+}
+.admin-button{
+    background-color: rgb(21, 173, 166);
+    border-radius: 2px;
+    border: 2%;
+}
+.admin-button > a{
+    text-decoration: none;  
+    color: black;
+    position: absolute;
+    font-size: 25px;
+    width: 90px;
+    display: flex;
+    justify-content: space-around;
+    right: 10px;
+    top: 10px;
+}
