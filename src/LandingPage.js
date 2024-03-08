@@ -1,4 +1,3 @@
-
 export default function LandingPage(){
     function handle(){
         console.log("Hello")

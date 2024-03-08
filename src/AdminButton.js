@@ -1,5 +1,6 @@
+import { Link } from "react-router-dom"
 export default function AdminButton(){
     return(
-        <div className="admin-button"><a href="./AdminPage.js" className="admin-button">Admin</a></div>
+        <div className="admin-button"><Link to='/AdminPage' className="admin-button">Admin</Link></div>
     )
 }

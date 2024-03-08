@@ -1,16 +1,13 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import LandingPage from './LandingPage';
-import AdminButton from './AdminButton';
-import DisplayCode from './DisplayCode';
+import ReactDOM from "react-dom"
+import { BrowserRouter} from 'react-router-dom';
+import App from './App';
 import './index.css';
 import './button.css'
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <div>
-    <DisplayCode />
-    <AdminButton />
-    <LandingPage />
-  </div>
+  <BrowserRouter>
+    <App/>
+  </BrowserRouter>
 );
 
