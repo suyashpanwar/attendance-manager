@@ -7,11 +7,11 @@ export default function LandingPage(){
         <div className='user'>
             <div>
                 <label htmlFor="reg-no">Reg No</label>
-                <input id='reg-no' type="text" className='reg-no'/>
+                <input id='reg-no' type="text" className='reg-no' placeholder="Registration Number"/>
             </div>
             <div>
                 <label htmlFor="code">Code</label>
-                <input id ='code' type="text" className='code' />
+                <input id ='code' type="text" className='code' placeholder="Enter the code above"/>
             </div>
             <div>
                 <button className="button" onClick={handle}>Submit</button>
