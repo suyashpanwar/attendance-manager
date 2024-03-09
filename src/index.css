@@ -46,6 +46,22 @@ label {
     right: 10px;
     top: 10px;
 }
+.user-button{
+    background-color: rgb(21, 173, 166);
+    border-radius: 2px;
+    border: 2%;
+}
+.user-button > a{
+    text-decoration: none;  
+    color: black;
+    position: absolute;
+    font-size: 25px;
+    width: 90px;
+    display: flex;
+    justify-content: space-around;
+    right: 120px;
+    top: 10px;
+}
 .display-code{
     margin-left: 35vw;
     display: flex;

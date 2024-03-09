@@ -1,6 +1,9 @@
 export default function LandingPage(){
     function handle(){
-        console.log("Hello")
+        const input = document.getElementById("code")
+        if(input==='12345'){
+            window.alert("attendance submitted successfully")
+        }
     }
     return(
         <div className='user'>
