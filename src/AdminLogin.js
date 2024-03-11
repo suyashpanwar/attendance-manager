@@ -19,7 +19,6 @@ export default function AdminLogin(){
     const emai = "suyashp124@gmail.com"
     function LoginSucces(){
         if(passWord===pass && email===emai){
-            alert("success")
             SetLogin(true)
         }
         else{
