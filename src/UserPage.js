@@ -1,8 +1,8 @@
-export default function AdminPage(){
+export default function UserPage(){
     return(
         <div>
             <h3>
-                Hello Admins
+                Hello Users
             </h3>
         </div>
     )
