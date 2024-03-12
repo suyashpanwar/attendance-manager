@@ -46,7 +46,7 @@ h2{
     margin-bottom:10px;
     margin-top: 10px;
 }
-.new-email ,.new-password{
+.new-email ,.new-password, .new-class{
     width: 280px;
     height: 50px;
     margin: 7px;
@@ -61,9 +61,20 @@ h2{
     font-size: 25px;
     margin-left: 20px;
 }
+.labels-user{
+    font-size: larger;
+    font-weight: bolder;
+    display: inline-block;
+    width: 80px;
+    font-size: 25px;
+    margin-left: 20px; 
+}
 .button-new{
     margin-left: 100px;
 }
 .current-admin{
+    margin-left: 20px;
+}
+.class-new{
     margin-left: 20px;
 }
