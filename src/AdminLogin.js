@@ -1,5 +1,6 @@
 import React from 'react';
 import AdminPage from './AdminPage.js'
+import DateTimeDisplay from './DateTimeDisplay.js';
 
 export default function AdminLogin(){
     const [email, SetEmail] = React.useState("")
@@ -29,7 +30,10 @@ export default function AdminLogin(){
     return(
         <div>
             {login?(
-            <AdminPage />
+            <div>
+            <DateTimeDisplay />
+            <AdminPage/>
+            </div>
             ) : (
             <div className="login">
                 <h2>Admin Login</h2>

@@ -6,6 +6,7 @@ import AdminButton from './AdminButton';
 import AdminLogin from './AdminLogin';
 import UserButton from './UserButton';
 import UserLogin from './UserLogin';
+import DateTimeDisplay from './DateTimeDisplay';
 
 export default function App(){
     return(
@@ -13,13 +14,21 @@ export default function App(){
             <Routes>
                 <Route path='/' element={
                 <div>
+                    <DateTimeDisplay/>
                     <DisplayCode/>
-                    <UserButton />
+                    <UserButton/>
                     <AdminButton/>
                     <LandingPage/>
                 </div>} exact />
-                <Route path='/AdminLogin' element={<AdminLogin/>} />
-                <Route path='/UserLogin' element={<UserLogin />} />
+                <Route path='/AdminLogin' element={
+                <div>
+                    <AdminLogin/>
+                </div>
+                } />
+                <Route path='/UserLogin' element={
+                <div>
+                    <UserLogin/>
+                </div>} />
             </Routes>
         </main>
     )

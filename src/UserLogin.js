@@ -1,5 +1,6 @@
 import React from 'react';
 import UserPage from './UserPage.js';
+import DateTimeDisplay from './DateTimeDisplay.js';
 // import AdminPage from './AdminPage.js';
 
 export default function AdminLogin(){
@@ -30,7 +31,11 @@ export default function AdminLogin(){
     return(
         <div>
             {login?(
-            <UserPage/>
+                <div>
+                    <DateTimeDisplay />
+                    <UserPage/>
+                </div>
+            
             ) : (
             <div className="login">
                 <h2>User Login</h2>
