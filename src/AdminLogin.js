@@ -1,6 +1,7 @@
 import React from 'react';
 import AdminPage from './AdminPage.js'
 import DateTimeDisplay from './DateTimeDisplay.js';
+import Logo from './Logo.js';
 
 export default function AdminLogin(){
     const [email, SetEmail] = React.useState("")
@@ -35,20 +36,23 @@ export default function AdminLogin(){
             <AdminPage/>
             </div>
             ) : (
-            <div className="login">
-                <h2>Admin Login</h2>
                 <div>
-                    <label htmlFor="email" className="labels">email</label>
-                    <input type="email" id="email" className="login-email" value={email} onChange={handleEmailChange}/>
+                    <Logo />
+                    <div className="login">
+                        <h2>Admin Login</h2>
+                        <div>
+                            <label htmlFor="email" className="labels">email</label>
+                            <input type="email" id="email" className="login-email" value={email} onChange={handleEmailChange}/>
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="labels">password</label>
+                            <input type="password" id="password" className="login-password" value={passWord} onChange={handlePasswordChange}/>
+                        </div>
+                        <div>
+                            <button className="button" onClick={LoginSucces}>Login</button>
+                        </div>  
+                    </div>
                 </div>
-                <div>
-                    <label htmlFor="password" className="labels">password</label>
-                    <input type="password" id="password" className="login-password" value={passWord} onChange={handlePasswordChange}/>
-                </div>
-                <div>
-                    <button className="button" onClick={LoginSucces}>Login</button>
-                </div>  
-            </div>
             )}
         </div>
     )

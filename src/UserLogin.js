@@ -1,6 +1,7 @@
 import React from 'react';
 import UserPage from './UserPage.js';
 import DateTimeDisplay from './DateTimeDisplay.js';
+import Logo from './Logo.js';
 // import AdminPage from './AdminPage.js';
 
 export default function AdminLogin(){
@@ -37,23 +38,26 @@ export default function AdminLogin(){
                 </div>
             
             ) : (
-            <div className="login">
-                <h2>User Login</h2>
                 <div>
-                    <label htmlFor="email" className="labels">email</label>
-                    <input type="email" id="email" className="login-email" value={email} onChange={handleEmailChange}/>
+                    <Logo />
+                    <div className="login">
+                        <h2>User Login</h2>
+                        <div>
+                            <label htmlFor="email" className="labels">email</label>
+                            <input type="email" id="email" className="login-email" value={email} onChange={handleEmailChange}/>
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="labels">password</label>
+                            <input type="password" id="password" className="login-password" value={passWord} onChange={handlePasswordChange}/>
+                        </div>
+                        <div>
+                            <button className="button" onClick={LoginSucces}>Login</button>
+                        </div>  
+                        <footer className="user-footer">
+                            <p>If you're not a registered user, please contact admin on xyz@gmail.com</p>
+                        </footer>
+                    </div>
                 </div>
-                <div>
-                    <label htmlFor="password" className="labels">password</label>
-                    <input type="password" id="password" className="login-password" value={passWord} onChange={handlePasswordChange}/>
-                </div>
-                <div>
-                    <button className="button" onClick={LoginSucces}>Login</button>
-                </div>  
-                <footer className="user-footer">
-                    <p>If you're not a registered user, please contact admin on xyz@gmail.com</p>
-                </footer>
-            </div>
             )}
         </div>
     )

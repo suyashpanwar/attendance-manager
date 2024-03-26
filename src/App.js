@@ -7,6 +7,7 @@ import AdminLogin from './AdminLogin';
 import UserButton from './UserButton';
 import UserLogin from './UserLogin';
 import DateTimeDisplay from './DateTimeDisplay';
+import Logo from './Logo';
 
 export default function App(){
     return(
@@ -14,6 +15,7 @@ export default function App(){
             <Routes>
                 <Route path='/' element={
                 <div>
+                    <Logo/>
                     <DateTimeDisplay/>
                     <DisplayCode/>
                     <UserButton/>
