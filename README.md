@@ -17,8 +17,6 @@ Swift Attendance is a modern web application designed to streamline and enhance 
 - **Automatic Attendance Logging:**
   - Attendance records are automatically stored in an Excel file, minimizing manual data entry and reducing the likelihood of errors.
 
-- **Future Integration:**
-  - Potential future integration with Student Life Cycle Management (SLCM) systems for seamless attendance updates and improved academic management.
 
 ## Technologies Used
 
