@@ -149,4 +149,47 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/generateCode', (req, res) => {
+  try {
+    const code = Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit code
+    res.status(200).json({ code });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+// Route to mark attendance when the correct code and registration number are provided
+app.post('/markAttendance', async (req, res) => {
+  var generatedCode = 200911194
+  try {
+    const { registrationNumber, code } = req.body;
+
+    // Check if the provided registration number exists
+    const student = await Student.findOne({ registrationNumber });
+    if (!student) {
+      return res.status(400).json({ message: 'Invalid registration number' });
+    }
+
+    // Check if the provided code matches the generated code
+    if (code !== generatedCode) {
+      return res.status(400).json({ message: 'Invalid code' });
+    }
+
+    // Mark attendance
+    const attendance = new Attendance({
+      student: student._id,
+      regNo : student.registrationNumber,
+      present: true // You can customize this based on your requirements
+    });
+    await attendance.save();
+
+    res.status(200).json({ message: 'Attendance marked successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 app.listen(3000, () => console.log('Server running on port 3000'));
