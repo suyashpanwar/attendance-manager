@@ -149,20 +149,22 @@ app.post('/register', async (req, res) => {
   }
 });
 
+let generatedCode = null;
+let generatedRegistrationNumber = null;
+
+
 app.get('/generateCode', (req, res) => {
   try {
-    const code = Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit code
-    res.status(200).json({ code });
+    generatedCode = Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit code
+    res.status(200).json({ code: generatedCode });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-
 // Route to mark attendance when the correct code and registration number are provided
 app.post('/markAttendance', async (req, res) => {
-  var generatedCode = 200911194
   try {
     const { registrationNumber, code } = req.body;
 
@@ -177,10 +179,23 @@ app.post('/markAttendance', async (req, res) => {
       return res.status(400).json({ message: 'Invalid code' });
     }
 
+    // Check if attendance has already been marked for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to midnight for comparison
+    const existingAttendance = await Attendance.findOne({
+      student: student._id,
+      date: today
+    });
+
+    if (existingAttendance) {
+      return res.status(400).json({ message: 'Attendance already marked for today' });
+    }
+
     // Mark attendance
     const attendance = new Attendance({
       student: student._id,
-      regNo : student.registrationNumber,
+      registrationNumber: student.registrationNumber,
+      date: today,
       present: true // You can customize this based on your requirements
     });
     await attendance.save();
