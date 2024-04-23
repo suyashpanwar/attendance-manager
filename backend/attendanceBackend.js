@@ -1,34 +1,62 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-const app = express();
-
-app.use(express.json());
-
-const SECRET = 'SECr3t';  // This should be in an environment variable in a real application
-
-// Define mongoose schemas
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { body, validationResult } = require('express-validator');
 
 const adminSchema = new mongoose.Schema({
-  username: String,
-  password: String
+  name: {
+    type: String,
+    required: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  labs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lab'
+  }]
+});
+
+const labSchema = new mongoose.Schema({
+  labName: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  maxCapacity: {
+    type: Number,
+    required: true
+  },
+  admin: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin',
+    required: true
+  },
+  students: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student'
+  }]
 });
 
 const studentSchema = new mongoose.Schema({
   registrationNumber: {
     type: String,
     required: true,
-    unique: true,
-    validate: {
-      validator: function(v) {
-        // Check if the registration number is numerical
-        return /^\d+$/.test(v);
-      },
-      message: props => `${props.value} is not a valid registration number!`
-    }
+    unique: true
   },
   name: {
     type: String,
+    required: true
+  },
+  semester: {
+    type: Number,
     required: true
   },
   branch: {
@@ -36,15 +64,8 @@ const studentSchema = new mongoose.Schema({
     required: true
   },
   lab: {
-    type: String,
-    required: true
-  },
-  section: {
-    type: String,
-    required: true
-  },
-  year: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Lab',
     required: true
   }
 });
@@ -62,100 +83,215 @@ const attendanceSchema = new mongoose.Schema({
   },
   present: {
     type: Boolean,
-    default: false
+    required: true
   }
 });
-// Define mongoose models
+
+
 const Admin = mongoose.model('Admin', adminSchema);
+const Lab = mongoose.model('Lab', labSchema);
 const Student = mongoose.model('Student', studentSchema);
 const Attendance = mongoose.model('Attendance', attendanceSchema);
 
-const authenticateJwt = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (authHeader) {
-    const token = authHeader.split(' ')[1];
-    jwt.verify(token, SECRET, (err, user) => {
-      if (err) {
-        return res.sendStatus(403);
-      }
-      req.user = user;
-      next();
-    });
-  } else {
-    res.sendStatus(401);
-  }
-};
+
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = 'your_jwt_secret';
+
+// Middleware to parse JSON bodies
+app.use(express.json());
 
 // Connect to MongoDB
-// DONT MISUSE THIS THANKYOU!!
-const uri = 'mongodb+srv://suyashp124:Suyash%401@cluster0.lvjqsky.mongodb.net/attendance'
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true, dbName: "attendance" });
+mongoose.connect('mongodb+srv://suyashp124:Suyash%401@cluster0.lvjqsky.mongodb.net/');
 
-app.post('/admin/signup', (req, res) => {
-  const { username, password } = req.body;
-  function callback(admin) {
-    if (admin) {
-      res.status(403).json({ message: 'Admin already exists' });
-    } else {
-      const obj = { username: username, password: password };
-      const newAdmin = new Admin(obj);
-      newAdmin.save();
-      const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
-      res.json({ message: 'Admin created successfully', token });
-    }
+// Middleware for JWT authentication
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (token == null) return res.sendStatus(401);
 
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+// Register Admin
+app.post('/admin/register', [
+  body('email').isEmail(),
+  body('password').isLength({ min: 5 }),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
-  Admin.findOne({ username }).then(callback);
-});
 
-app.post('/admin/login', async (req, res) => {
-  const { username, password } = req.headers;
-  const admin = await Admin.findOne({ username, password });
-  if (admin) {
-    const token = jwt.sign({ username, role: 'admin' }, SECRET, { expiresIn: '1h' });
-    res.json({ message: 'Logged in successfully', token });
-  } else {
-    res.status(403).json({ message: 'Invalid username or password' });
-  }
-});
-
-app.post('/register', async (req, res) => {
   try {
-    const { registrationNumber, name, branch, lab, section, year } = req.body;
+    const { name, email, password } = req.body;
 
-    // Check if the registration number already exists
-    const existingStudent = await Student.findOne({ registrationNumber });
-    if (existingStudent) {
-      return res.status(400).json({ message: 'Registration number already exists' });
+    // Check if admin already exists
+    let admin = await Admin.findOne({ email });
+    if (admin) {
+      return res.status(400).json({ message: 'Admin already registered' });
     }
 
-    // Create a new student document
-    const newStudent = new Student({
-      registrationNumber,
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new admin
+    admin = new Admin({
       name,
-      branch,
-      lab,
-      section,
-      year
+      email,
+      password: hashedPassword
     });
 
-    // Save the new student to the database
-    await newStudent.save();
+    // Save admin to database
+    await admin.save();
 
-    res.status(201).json({ message: 'Student registered successfully', student: newStudent });
+    res.status(201).json({ message: 'Admin registered successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
-let generatedCode = null;
-let generatedRegistrationNumber = null;
+// Login Admin
+app.post('/admin/login', async (req, res) => {
+  const { email, password } = req.body;
 
-
-app.get('/generateCode', (req, res) => {
   try {
-    generatedCode = Math.floor(100000 + Math.random() * 900000); // Generate a random 6-digit code
+    // Check if admin exists
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign({ id: admin._id }, JWT_SECRET);
+    res.json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Create Lab (Admin only)
+app.post('/lab/create', authenticateToken, async (req, res) => {
+  try {
+    const { labName, maxCapacity } = req.body;
+
+    // Check if lab already exists
+    const existingLab = await Lab.findOne({ labName });
+    if (existingLab) {
+      return res.status(400).json({ message: 'Lab already exists' });
+    }
+
+    // Create new lab
+    const lab = new Lab({
+      labName,
+      maxCapacity,
+      admin: req.user.id // Admin ID from JWT token
+    });
+
+    // Save lab to database
+    await lab.save();
+
+    res.status(201).json({ message: 'Lab created successfully', lab });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Enroll Student (Admin only)
+app.post('/student/enroll', authenticateToken, async (req, res) => {
+  try {
+    const { registrationNumber, name, semester, branch, labName } = req.body;
+
+    // Check if lab exists
+    const lab = await Lab.findOne({ labName });
+    if (!lab) {
+      return res.status(400).json({ message: 'Lab does not exist' });
+    }
+
+    // Create new student
+    const student = new Student({
+      registrationNumber,
+      name,
+      semester,
+      branch,
+      lab: lab._id
+    });
+
+    // Save student to database
+    await student.save();
+
+    // Add student to lab
+    lab.students.push(student._id);
+    await lab.save();
+
+    res.status(201).json({ message: 'Student enrolled successfully', student });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.post('/student/addToLab', authenticateToken, async (req, res) => {
+  try {
+    const { registrationNumber, labName } = req.body;
+
+    // Find student by registration number
+    const student = await Student.findOne({ registrationNumber });
+    if (!student) {
+      return res.status(400).json({ message: 'Student not found' });
+    }
+
+    // Find lab by name
+    const lab = await Lab.findOne({ labName });
+    if (!lab) {
+      return res.status(400).json({ message: 'Lab does not exist' });
+    }
+
+    // Check if student is already enrolled in the lab
+    if (student.lab.equals(lab._id)) {
+      return res.status(400).json({ message: 'Student is already enrolled in the lab' });
+    }
+
+    // Add student to lab
+    lab.students.push(student._id);
+    await lab.save();
+
+    res.status(200).json({ message: 'Student added to lab successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Global variable to store the generated code
+let generatedCode = null;
+
+// Route to generate a random 6-digit code (Admin only)
+app.get('/lab/generateCode', authenticateToken, async (req, res) => {
+  try {
+    // Get lab managed by admin
+    const lab = await Lab.findOne({ admin: req.user.id });
+    if (!lab) {
+      return res.status(400).json({ message: 'Admin does not manage any lab' });
+    }
+
+    // Generate random 6-digit code
+    generatedCode = Math.floor(100000 + Math.random() * 900000);
+
     res.status(200).json({ code: generatedCode });
   } catch (error) {
     console.error(error);
@@ -163,41 +299,29 @@ app.get('/generateCode', (req, res) => {
   }
 });
 
-// Route to mark attendance when the correct code and registration number are provided
-app.post('/markAttendance', async (req, res) => {
+// Route to mark attendance (Student only)
+app.post('/student/markAttendance', async (req, res) => {
   try {
     const { registrationNumber, code } = req.body;
-
-    // Check if the provided registration number exists
-    const student = await Student.findOne({ registrationNumber });
-    if (!student) {
-      return res.status(400).json({ message: 'Invalid registration number' });
-    }
 
     // Check if the provided code matches the generated code
     if (code !== generatedCode) {
       return res.status(400).json({ message: 'Invalid code' });
     }
 
-    // Check if attendance has already been marked for today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set time to midnight for comparison
-    const existingAttendance = await Attendance.findOne({
-      student: student._id,
-      date: today
-    });
-
-    if (existingAttendance) {
-      return res.status(400).json({ message: 'Attendance already marked for today' });
+    // Find student by registration number
+    const student = await Student.findOne({ registrationNumber });
+    if (!student) {
+      return res.status(400).json({ message: 'Student not found' });
     }
 
     // Mark attendance
     const attendance = new Attendance({
       student: student._id,
-      registrationNumber: student.registrationNumber,
-      date: today,
-      present: true // You can customize this based on your requirements
+      date: new Date(),
+      present: true // Assuming attendance is marked as present if correct code is entered
     });
+
     await attendance.save();
 
     res.status(200).json({ message: 'Attendance marked successfully' });
@@ -207,4 +331,7 @@ app.post('/markAttendance', async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
