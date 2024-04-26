@@ -2,96 +2,21 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const { extractAttendanceForLab } = require('./attendanceUtils');
+const  generateAttendanceExcel  = require('./excelUtils'); 
 const { body, validationResult } = require('express-validator');
 
-const adminSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  labs: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Lab'
-  }]
-});
 
-const labSchema = new mongoose.Schema({
-  labName: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  maxCapacity: {
-    type: Number,
-    required: true
-  },
-  admin: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Admin',
-    required: true
-  },
-  students: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student'
-  }]
-});
+// const Admin = mongoose.model('Admin', adminSchema);
+// const Lab = mongoose.model('Lab', labSchema);
+// const Student = mongoose.model('Student', studentSchema);
+// const Attendance = mongoose.model('Attendance', attendanceSchema);
 
-const studentSchema = new mongoose.Schema({
-  registrationNumber: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  semester: {
-    type: Number,
-    required: true
-  },
-  branch: {
-    type: String,
-    required: true
-  },
-  lab: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Lab',
-    required: true
-  }
-});
-
-const attendanceSchema = new mongoose.Schema({
-  student: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student',
-    required: true
-  },
-  date: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  present: {
-    type: Boolean,
-    required: true
-  }
-});
-
-
-const Admin = mongoose.model('Admin', adminSchema);
-const Lab = mongoose.model('Lab', labSchema);
-const Student = mongoose.model('Student', studentSchema);
-const Attendance = mongoose.model('Attendance', attendanceSchema);
+const Admin = require('./adminSchema')
+const Lab = require('./labSchema')
+const Student = require('./studentSchema')
+const Attendance = require('./attendanceSchema')
 
 
 
@@ -330,6 +255,63 @@ app.post('/student/markAttendance', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+// Route to extract attendance data for a lab for a specific year and month
+app.get('/attendance',authenticateToken, async (req, res) => {
+  try {
+    const { labName, year, month } = req.body;
+
+    // Check if all required parameters are provided
+    if (!labName || !year || !month) {
+      return res.status(400).json({ message: 'Lab name, year, and month are required' });
+    }
+
+    // Call the extractAttendanceForLab function
+    const attendanceData = await extractAttendanceForLab(labName, parseInt(year), parseInt(month));
+
+    res.status(200).json(attendanceData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch attendance data' });
+  }
+});
+
+app.get('/attendance/excel', authenticateToken, async (req, res) => {
+  try {
+    // Example attendance data (replace with your actual attendance data retrieval logic)
+    const attendanceData = [
+      { student: { name: 'John', registrationNumber: '123' }, attendance: [{ date: new Date('2024-04-01'), present: true }, { date: new Date('2024-04-02'), present: false }] },
+      // Add more attendance data as needed
+    ];
+
+    // Generate a unique file name for the Excel file
+    const fileName = `attendance_${Date.now()}.xlsx`;
+    const filePath = `./${fileName}`;
+
+    // Generate the Excel file
+    generateAttendanceExcel(attendanceData, filePath);
+
+    // Send the Excel file as a downloadable attachment
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err);
+        res.status(500).send('Error downloading file');
+      }
+
+      // Delete the file after it has been sent
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.error('Error deleting file:', err);
+        }
+        console.log('File deleted:', filePath);
+      });
+    });
+  } catch (error) {
+    console.error('Error generating Excel file:', error);
+    res.status(500).send('Error generating Excel file');
+  }
+});
+
 
 // Start the server
 app.listen(PORT, () => {
